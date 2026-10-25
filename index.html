@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>Tobis Vorlesezimmer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vorlesen">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Young+Serif&display=swap">
+<style>
+/* Layout: eine ruhige Lesespalte wie eine Buchseite unter der Nachttischlampe, Steuerleiste unten fest */
+:root{
+  --bg:#131929; --surface:#1b2237; --line:#2a3350;
+  --fg:#ebe6da; --muted:#9097ad; --read:#646b86;
+  --lamp:#f0b443; --lamp-soft:rgba(240,180,67,.16); --ok:#6fcf97; --warn:#ef8a6b;
+  --f-display:"Young Serif",Georgia,serif;
+  --f-story:"Literata",Georgia,"Times New Roman",serif;
+  --f-ui:"Atkinson Hyperlegible",-apple-system,system-ui,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eef1f6; --surface:#ffffff; --line:#d6dbe6;
+  --fg:#1c2233; --muted:#5d6479; --read:#a3a9ba;
+  --lamp:#a8650a; --lamp-soft:rgba(168,101,10,.12); --ok:#1f8a4c; --warn:#b4472a; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#eef1f6; --surface:#ffffff; --line:#d6dbe6;
+  --fg:#1c2233; --muted:#5d6479; --read:#a3a9ba;
+  --lamp:#a8650a; --lamp-soft:rgba(168,101,10,.12); --ok:#1f8a4c; --warn:#b4472a; color-scheme:light}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-ui);font-size:16px;line-height:1.5}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 140px}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0}
+h1{font-size:1.9rem;line-height:1.15}
+h2{font-size:1.35rem}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 14px;min-height:44px}
+.btn.primary{background:var(--lamp);border-color:var(--lamp);color:#1a1405;font-weight:700}
+.btn.ghost{background:transparent}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* Bibliothek */
+.lib{display:grid;gap:12px;margin-top:20px}
+.story-card{display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px}
+.story-card .t{font-family:var(--f-display);font-size:1.15rem}
+.story-card .m{color:var(--muted);font-size:.85rem}
+.story-card .go{color:var(--lamp);font-weight:700;white-space:nowrap}
+.hint{color:var(--muted);font-size:.9rem;max-width:62ch}
+
+/* Lesen */
+.reader-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.story{font-family:var(--f-story);font-size:1.32rem;line-height:1.75;max-width:62ch}
+.story .w{border-radius:4px;transition:color .25s}
+.story .w.read{color:var(--read)}
+.story .w.here{box-shadow:0 2px 0 var(--lamp)}
+.story .fx{font-weight:600;background:var(--lamp-soft);border-radius:4px;padding:0 2px;cursor:pointer}
+.story .fx.done{background:transparent}
+.story .pb{display:block;height:.9em}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--read)}
+.status.on .dot{background:var(--ok);animation:pulse 1.4s infinite}
+.status.err .dot{background:var(--warn)}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.status.on .dot{animation:none}}
+.msg{margin:0 0 16px;padding:12px 14px;border:1px solid var(--warn);border-radius:10px;font-size:.92rem}
+.msg[hidden]{display:none}
+.heard{font-size:.8rem;color:var(--muted);margin-top:24px;min-height:1.2em;font-style:italic}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5}
+.bar .inner{max-width:680px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+/* Editor */
+label{display:block;font-size:.85rem;color:var(--muted);margin:16px 0 6px}
+input[type=text],textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:12px;font:inherit}
+textarea{min-height:300px;font-family:var(--f-story);font-size:1.05rem;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.chip button{border:0;background:transparent;padding:8px 12px;min-height:40px}
+.chip button+button{border-left:1px solid var(--line);color:var(--lamp)}
+code{font-size:.85em;background:var(--lamp-soft);padding:1px 5px;border-radius:4px}
+</style>
+
+<div class="wrap" id="app"></div>
+<div class="bar" id="bar" hidden><div class="inner" id="barInner"></div></div>
+
+<script>
+/* ---------- Klang-Werkstatt: alle Geräusche werden live erzeugt, keine Dateien nötig ---------- */
+const Sound = (() => {
+  let ctx, out;
+  function init(){ if(!ctx){ ctx = new (window.AudioContext||window.webkitAudioContext)(); out = ctx.createGain(); out.gain.value = .9; out.connect(ctx.destination);} if(ctx.state==='suspended') ctx.resume(); }
+  function noise(d){ const b=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate), a=b.getChannelData(0); for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1; const s=ctx.createBufferSource(); s.buffer=b; return s; }
+  function env(g,t,a,peak,hold,rel){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+a); g.gain.setValueAtTime(peak,t+a+hold); g.gain.exponentialRampToValueAtTime(0.0001,t+a+hold+rel); }
+  function tone(type,f,t,dur,peak,f2){ const o=ctx.createOscillator(),g=ctx.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur*.8); env(g,t,.01,peak,0,dur); o.connect(g).connect(out); o.start(t); o.stop(t+dur+.05); }
+  const lib = {
+    donner(){ const t=ctx.currentTime; [0,.35].forEach((d,k)=>{ const s=noise(3.6), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='lowpass'; f.frequency.setValueAtTime(k?500:1100,t+d); f.frequency.exponentialRampToValueAtTime(90,t+d+3); env(g,t+d,.04,k?1:.7,.2,3); s.connect(f).connect(g).connect(out); s.start(t+d); }); },
+    regen(){ const t=ctx.currentTime, s=noise(6), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='highpass'; f.frequency.value=1400; env(g,t,.8,.22,3.8,1.4); s.connect(f).connect(g).connect(out); s.start(t);
+      for(let i=0;i<40;i++){ const d=Math.random()*5.2; tone('sine',2200+Math.random()*2500,t+d,.03,.05,900); } },
+    wind(){ const t=ctx.currentTime, s=noise(6), f=ctx.createBiquadFilter(), g=ctx.createGain(), l=ctx.createOscillator(), lg=ctx.createGain(); f.type='bandpass'; f.Q.value=1.4; f.frequency.value=450; l.frequency.value=.35; lg.gain.value=300; l.connect(lg).connect(f.frequency); env(g,t,1.2,.6,2.6,1.8); s.connect(f).connect(g).connect(out); s.start(t); l.start(t); l.stop(t+6); },
+    vogel(){ const t=ctx.currentTime; for(let p=0;p<3;p++) for(let i=0;i<5;i++){ const d=p*.9+i*.13+Math.random()*.04, f=2400+Math.random()*1400; tone('sine',f,t+d,.09,.18,f*(1.2+Math.random()*.4)); } },
+    eule(){ const t=ctx.currentTime; [[0,.45],[.75,.25],[1.1,.6]].forEach(([d,l])=>{ const o=ctx.createOscillator(),g=ctx.createGain(),v=ctx.createOscillator(),vg=ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(390,t+d); o.frequency.linearRampToValueAtTime(345,t+d+l); v.frequency.value=6; vg.gain.value=6; v.connect(vg).connect(o.frequency); env(g,t+d,.06,.35,l*.5,l*.5); o.connect(g).connect(out); o.start(t+d); v.start(t+d); o.stop(t+d+l+.2); v.stop(t+d+l+.2); }); },
+    schritte(){ const t=ctx.currentTime; for(let i=0;i<6;i++){ const d=i*.38+Math.random()*.04, s=noise(.2), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='lowpass'; f.frequency.value=500+Math.random()*200; env(g,t+d,.008,.8,0,.14); s.connect(f).connect(g).connect(out); s.start(t+d); } },
+    tuer(){ const t=ctx.currentTime, o=ctx.createOscillator(), f=ctx.createBiquadFilter(), g=ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(95,t); for(let i=1;i<14;i++) o.frequency.linearRampToValueAtTime(80+Math.random()*60,t+i*.1); f.type='bandpass'; f.frequency.value=950; f.Q.value=9; env(g,t,.1,.5,1,.4); o.connect(f).connect(g).connect(out); o.start(t); o.stop(t+1.6); },
+    funkeln(){ const t=ctx.currentTime; [1046.5,1318.5,1568,2093,1568,2093,2637].forEach((f,i)=>tone('triangle',f,t+i*.12,1.1,.16)); },
+    musik(){ const t=ctx.currentTime, n=[392,329.6,392,329.6,293.7,261.6,293.7,329.6,261.6]; n.forEach((f,i)=>{ tone('sine',f,t+i*.42,.9,.18); tone('sine',f/2,t+i*.42,.9,.06); }); }
+  };
+  const names = {donner:'Donner',regen:'Regen',wind:'Wind',vogel:'Vögel',eule:'Eule',schritte:'Schritte',tuer:'Tür',funkeln:'Funkeln',musik:'Schlaflied'};
+  return { init, names, has:n=>!!lib[n], play(n){ init(); if(lib[n]) lib[n](); } };
+})();
+
+/* ---------- Geschichten ---------- */
+const BUILTIN = [{ id:'fridolin', title:'Fridolin und das große Gewitter', theme:'Angst vor Gewitter', text:
+`Am Rand des Waldes, in einer gemütlichen Höhle unter einer alten Eiche, wohnte der kleine Fuchs Fridolin. An diesem Abend war der Himmel dunkelgrau, und [sound:wind]der Wind pfiff durch die Bäume[/sound].
+
+Fridolin zog die Decke bis zur Nasenspitze. „Mama“, flüsterte er, „ich mag kein Gewitter.“ Da [sound:donner]grollte der Donner über den Hügeln[/sound], und Fridolin machte sich ganz klein.
+
+Mama Fuchs setzte sich neben ihn. „Weißt du, was der Donner ist?“, fragte sie. „Das ist nur die Luft, die nach dem Blitz ganz schnell Platz macht. Er klingt laut, aber hier in unserer Höhle kann er uns nichts tun.“
+
+Fridolin lauschte. [sound:regen]Draußen prasselte der Regen auf die Blätter[/sound]. Es klang fast wie ein Lied.
+
+„Und wo sind jetzt die Vögel?“, fragte Fridolin. „Die sitzen in ihren Nestern und warten, genau wie wir“, sagte Mama. Wie zur Antwort [sound:eule]rief oben in der Eiche die alte Eule[/sound]. Sie klang ganz ruhig.
+
+Fridolin musste lächeln. Der Donner wurde leiser und leiser, bis er nur noch ein fernes Brummen war.
+
+Am nächsten Morgen [sound:schritte]tapste Fridolin aus der Höhle[/sound]. Alles glitzerte nass in der Sonne, und [sound:vogel]die Vögel sangen, als wäre nichts gewesen[/sound].
+
+„Siehst du“, sagte Mama Fuchs. „Nach jedem Gewitter kommt die Sonne wieder.“ Und Fridolin wusste: Beim nächsten Mal würde er ein kleines bisschen weniger Angst haben.
+
+[sound:funkeln]Ende.[/sound]` }];
+
+const store = {
+  load(){ try{ return JSON.parse(localStorage.getItem('vorlese-geschichten')||'[]'); }catch(e){ return []; } },
+  save(list){ try{ localStorage.setItem('vorlese-geschichten',JSON.stringify(list)); return true; }catch(e){ return false; } }
+};
+const allStories = () => [...BUILTIN, ...store.load()];
+
+/* ---------- Text zerlegen ---------- */
+const norm = w => w.toLowerCase().replace(/[^a-zäöüß0-9]/g,'');
+function parse(text){
+  const parts=[], re=/\[sound:([a-zäöüß]+)\]([\s\S]*?)\[\/sound\]/gi; let last=0,m;
+  while((m=re.exec(text))){ if(m.index>last) parts.push({t:text.slice(last,m.index)}); parts.push({t:m[2],fx:m[1].toLowerCase()}); last=re.lastIndex; }
+  if(last<text.length) parts.push({t:text.slice(last)});
+  const words=[], spans=[]; let html='';
+  parts.forEach(p=>{
+    let inner=''; const start=words.length;
+    p.t.split(/(\s+)/).forEach(tok=>{
+      if(!tok) return;
+      if(/^\s+$/.test(tok)){ inner += /\n\s*\n/.test(tok) ? '<span class="pb"></span>' : ' '; return; }
+      const n=norm(tok), esc=tok.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      if(!n){ inner+=esc; return; }
+      inner+=`<span class="w" data-i="${words.length}">${esc}</span>`; words.push(n);
+    });
+    if(p.fx){ spans.push({fx:p.fx,start,end:words.length,fired:false,k:spans.length}); html+=`<span class="fx" data-k="${spans.length-1}" data-fx="${p.fx}">${inner}</span>`; }
+    else html+=inner;
+  });
+  return {words,spans,html};
+}
+
+/* ---------- Mitlesen: gehörte Wörter dem Text zuordnen ---------- */
+function lev(a,b){ const d=Array.from({length:a.length+1},(_,i)=>[i]); for(let j=1;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[a.length][b.length]; }
+function same(h,s){ if(!h||!s) return false; if(h===s) return true; if(h.length<4||s.length<4) return false; return lev(h,s)/Math.max(h.length,s.length)<=0.34; }
+function align(heard,story,from){
+  let c=from, miss=0;
+  for(let k=0;k<heard.length;k++){
+    const h=heard[k]; let hit=-1;
+    for(let j=c;j<Math.min(c+8,story.length);j++) if(same(h,story[j])){hit=j;break;}
+    if(hit<0 && miss>=1 && k+1<heard.length){ // Sprung: zwei Wörter in Folge weiter vorn suchen
+      for(let j=c;j<Math.min(c+80,story.length-1);j++) if(same(h,story[j])&&same(heard[k+1],story[j+1])){hit=j;break;}
+    }
+    if(hit>=0){ c=hit+1; miss=0; } else miss++;
+  }
+  return c;
+}
+
+/* ---------- Oberfläche ---------- */
+const app=document.getElementById('app'), bar=document.getElementById('bar'), barInner=document.getElementById('barInner');
+let cur=null; // {story, parsed, cursor}
+const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, listening=false, sessionBase=0, wake=null;
+
+function showLibrary(){
+  stopListening(); bar.hidden=true;
+  const list=allStories();
+  app.innerHTML=`<p class="eyebrow">Vorlesezimmer</p><h1>Welche Geschichte heute?</h1>
+  <p class="hint">Lesen Sie laut vor. Bei den markierten Stellen spielt die App Geräusche ab. Ohne Mikrofon tippen Sie einfach auf eine markierte Stelle.</p>
+  <div class="lib">${list.map(s=>{ const p=parse(s.text); return `<button class="story-card" data-id="${s.id}"><span><span class="t">${s.title}</span><br><span class="m">${s.theme?s.theme+' · ':''}${p.words.length} Wörter · ${p.spans.length} Geräusche</span></span><span class="go">Lesen</span></button>`; }).join('')}</div>
+  <div class="row" style="margin-top:20px"><button class="btn" id="newBtn">Neue Geschichte anlegen</button></div>`;
+  app.querySelectorAll('.story-card').forEach(b=>b.onclick=()=>openStory(list.find(s=>s.id===b.dataset.id)));
+  app.querySelector('#newBtn').onclick=()=>showEditor();
+}
+
+function openStory(s){
+  const parsed=parse(s.text); cur={story:s,parsed,cursor:0};
+  app.innerHTML=`<div class="reader-head"><button class="btn ghost" id="back">← Bibliothek</button><span class="status" id="status"><span class="dot"></span><span id="stxt">Bereit</span></span></div>
+  <p class="eyebrow">${s.theme||'Geschichte'}</p><h1 style="margin-bottom:20px">${s.title}</h1>
+  <p class="msg" id="msg" hidden></p>
+  <div class="story" id="story">${parsed.html}</div>
+  <p class="heard" id="heard"></p>`;
+  app.querySelector('#back').onclick=showLibrary;
+  const st=app.querySelector('#story');
+  st.addEventListener('click',e=>{
+    const w=e.target.closest('.w'), fx=e.target.closest('.fx');
+    Sound.init();
+    if(w){ const i=+w.dataset.i; moveTo(i+1, false); sessionBase=cur.cursor; }
+    if(fx){ const sp=cur.parsed.spans[+fx.dataset.k]; sp.fired=true; fx.classList.add('done'); Sound.play(sp.fx); }
+  });
+  bar.hidden=false;
+  barInner.innerHTML=`<button class="btn primary" id="mic">Vorlesen starten</button><button class="btn ghost" id="reset">Von vorne</button>`;
+  barInner.querySelector('#mic').onclick=()=> listening?stopListening():startListening();
+  barInner.querySelector('#reset').onclick=()=>{ cur.parsed.spans.forEach(s=>s.fired=false); st.querySelectorAll('.fx').forEach(e=>e.classList.remove('done')); moveTo(0,false); sessionBase=0; window.scrollTo({top:0,behavior:'smooth'}); };
+  if(!SR) showMsg('Diese Ansicht hat keine Spracherkennung. Tippen funktioniert trotzdem. Für das Mitlesen per Stimme die Datei in Safari auf dem iPhone oder iPad öffnen.');
+}
+
+function moveTo(c, fire){
+  const {spans}=cur.parsed; const old=cur.cursor; cur.cursor=c;
+  if(fire) spans.forEach(sp=>{ if(!sp.fired && c>sp.start && old<sp.end){ sp.fired=true; Sound.play(sp.fx); const el=document.querySelector(`.fx[data-k="${sp.k}"]`); if(el) el.classList.add('done'); } });
+  document.querySelectorAll('#story .w').forEach(el=>{ const i=+el.dataset.i; el.classList.toggle('read',i<c); el.classList.toggle('here',i===c); });
+  const here=document.querySelector('#story .w.here');
+  if(fire && here){ const r=here.getBoundingClientRect(); if(r.top<80||r.bottom>innerHeight-140) here.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); }
+}
+
+function setStatus(kind,text){ const s=document.getElementById('status'); if(!s) return; s.className='status '+kind; document.getElementById('stxt').textContent=text; const m=document.getElementById('mic'); if(m) m.textContent= listening?'Pause':'Vorlesen starten'; }
+function showMsg(t){ const m=document.getElementById('msg'); if(m){ m.textContent=t; m.hidden=false; } }
+
+function startListening(){
+  Sound.init();
+  if(!SR){ showMsg('Spracherkennung ist hier nicht verfügbar. Tippen Sie auf die markierten Stellen.'); return; }
+  listening=true; sessionBase=cur.cursor; launch();
+  if(navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>wake=w).catch(()=>{});
+  setStatus('on','Hört zu');
+}
+function launch(){
+  rec=new SR(); rec.lang='de-DE'; rec.continuous=true; rec.interimResults=true;
+  sessionBase=cur.cursor;
+  rec.onresult=e=>{
+    let txt=''; for(let i=0;i<e.results.length;i++) txt+=e.results[i][0].transcript+' ';
+    const heard=txt.split(/\s+/).map(norm).filter(Boolean);
+    const h=document.getElementById('heard'); if(h) h.textContent='Gehört: … '+txt.trim().split(/\s+/).slice(-8).join(' ');
+    const c=align(heard,cur.parsed.words,sessionBase);
+    if(c>cur.cursor) moveTo(c,true);
+  };
+  rec.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){ listening=false; setStatus('err','Mikrofon gesperrt'); showMsg('Das Mikrofon ist gesperrt. In diesem Vorschaufenster lässt sich das nicht ändern. Öffnen Sie die App in Safari und erlauben Sie den Mikrofonzugriff. Bis dahin: auf markierte Stellen tippen.'); }
+  };
+  rec.onend=()=>{ if(listening) setTimeout(()=>{ if(listening) launch(); },250); };
+  try{ rec.start(); }catch(e){}
+}
+function stopListening(){
+  listening=false; if(rec){ try{rec.stop();}catch(e){} rec=null; }
+  if(wake){ wake.release().catch(()=>{}); wake=null; }
+  setStatus('','Pausiert');
+}
+
+function showEditor(){
+  stopListening(); bar.hidden=true;
+  app.innerHTML=`<button class="btn ghost" id="back">← Bibliothek</button>
+  <h1 style="margin-top:16px">Neue Geschichte</h1>
+  <p class="hint">Markieren Sie Textstellen so: <code>[sound:donner]grollte der Donner[/sound]</code>. Tippen Sie auf einen Geräusch-Namen, um ihn an der Schreibmarke einzufügen, und auf ▶ zum Probehören.</p>
+  <label for="ti">Titel</label><input type="text" id="ti" placeholder="z. B. Lina und der erste Schultag">
+  <label for="th">Thema (optional)</label><input type="text" id="th" placeholder="z. B. Mut, Streit, Umzug">
+  <label>Geräusche</label><div class="chips">${Object.entries(Sound.names).map(([k,v])=>`<span class="chip"><button data-ins="${k}">${v}</button><button data-play="${k}" aria-label="${v} probehören">▶</button></span>`).join('')}</div>
+  <label for="tx">Text</label><textarea id="tx" placeholder="Es war einmal …"></textarea>
+  <p class="msg" id="msg" hidden></p>
+  <div class="row"><button class="btn primary" id="save">Speichern</button></div>
+  <p class="hint" style="margin-top:12px">Gespeichert wird nur auf diesem Gerät.</p>`;
+  app.querySelector('#back').onclick=showLibrary;
+  const tx=app.querySelector('#tx');
+  app.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>Sound.play(b.dataset.play));
+  app.querySelectorAll('[data-ins]').forEach(b=>b.onclick=()=>{
+    const a=tx.selectionStart,z=tx.selectionEnd,sel=tx.value.slice(a,z)||'Text';
+    tx.value=tx.value.slice(0,a)+`[sound:${b.dataset.ins}]${sel}[/sound]`+tx.value.slice(z); tx.focus();
+  });
+  app.querySelector('#save').onclick=()=>{
+    const title=app.querySelector('#ti').value.trim(), text=tx.value.trim();
+    if(!title||!text){ showMsg('Bitte Titel und Text eingeben.'); return; }
+    const bad=[...text.matchAll(/\[sound:([^\]]+)\]/gi)].map(m=>m[1].toLowerCase()).filter(n=>!Sound.has(n));
+    if(bad.length){ showMsg('Unbekannte Geräusche: '+[...new Set(bad)].join(', ')+'. Bitte einen Namen aus der Liste verwenden.'); return; }
+    const list=store.load(); list.push({id:'g'+Date.now(),title,theme:app.querySelector('#th').value.trim(),text});
+    if(!store.save(list)){ showMsg('Speichern ist in dieser Ansicht nicht möglich. In Safari geöffnet klappt es.'); return; }
+    showLibrary();
+  };
+}
+
+showLibrary();
+</script>
+
+</body>
+</html>
