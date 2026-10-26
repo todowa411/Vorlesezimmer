@@ -109,9 +109,16 @@ const Sound = (() => {
     schritte(){ const t=ctx.currentTime; for(let i=0;i<6;i++){ const d=i*.38+Math.random()*.04, s=noise(.2), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='lowpass'; f.frequency.value=500+Math.random()*200; env(g,t+d,.008,.8,0,.14); s.connect(f).connect(g).connect(out); s.start(t+d); } },
     tuer(){ const t=ctx.currentTime, o=ctx.createOscillator(), f=ctx.createBiquadFilter(), g=ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(95,t); for(let i=1;i<14;i++) o.frequency.linearRampToValueAtTime(80+Math.random()*60,t+i*.1); f.type='bandpass'; f.frequency.value=950; f.Q.value=9; env(g,t,.1,.5,1,.4); o.connect(f).connect(g).connect(out); o.start(t); o.stop(t+1.6); },
     funkeln(){ const t=ctx.currentTime; [1046.5,1318.5,1568,2093,1568,2093,2637].forEach((f,i)=>tone('triangle',f,t+i*.12,1.1,.16)); },
-    musik(){ const t=ctx.currentTime, n=[392,329.6,392,329.6,293.7,261.6,293.7,329.6,261.6]; n.forEach((f,i)=>{ tone('sine',f,t+i*.42,.9,.18); tone('sine',f/2,t+i*.42,.9,.06); }); }
+    musik(){ const t=ctx.currentTime, n=[392,329.6,392,329.6,293.7,261.6,293.7,329.6,261.6]; n.forEach((f,i)=>{ tone('sine',f,t+i*.42,.9,.18); tone('sine',f/2,t+i*.42,.9,.06); }); },
+    pfiff(){ const t=ctx.currentTime; [[0,.35],[.5,1.1]].forEach(([d,l])=>{ const o=ctx.createOscillator(),g=ctx.createGain(),v=ctx.createOscillator(),vg=ctx.createGain(); o.type='sine'; o.frequency.value=2900; v.type='square'; v.frequency.value=28; vg.gain.value=170; v.connect(vg).connect(o.frequency); env(g,t+d,.02,.28,l-.1,.08); o.connect(g).connect(out); o.start(t+d); v.start(t+d); o.stop(t+d+l+.1); v.stop(t+d+l+.1); }); },
+    schuss(){ const t=ctx.currentTime; tone('sine',150,t,.25,.9,45); const s=noise(.12), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='bandpass'; f.frequency.value=1800; env(g,t,.003,.5,0,.07); s.connect(f).connect(g).connect(out); s.start(t);
+      const s2=noise(.9), f2=ctx.createBiquadFilter(), g2=ctx.createGain(); f2.type='highpass'; f2.frequency.value=2500; env(g2,t+.55,.05,.12,.2,.5); s2.connect(f2).connect(g2).connect(out); s2.start(t+.55); },
+    ball(){ const t=ctx.currentTime; let d=0, gap=.5; for(let i=0;i<7;i++){ tone('sine',120,t+d,.14,.6*Math.pow(.85,i),60); d+=gap; gap*=.8; } },
+    jubel(){ const t=ctx.currentTime; [[600,1.2],[1100,1],[1800,.7],[350,1.1]].forEach(([fr,q])=>{ const s=noise(5.5), f=ctx.createBiquadFilter(), g=ctx.createGain(), l=ctx.createOscillator(), lg=ctx.createGain(); f.type='bandpass'; f.frequency.value=fr; f.Q.value=q; l.frequency.value=.5+Math.random()*.6; lg.gain.value=fr*.25; l.connect(lg).connect(f.frequency); env(g,t,.35,.45,2.6,2.2); s.connect(f).connect(g).connect(out); s.start(t); l.start(t); l.stop(t+5.5); });
+      [523.3,659.3,784,1046.5].forEach((f,i)=>tone('sawtooth',f,t+.3+i*.08,1.6,.025)); },
+    applaus(){ const t=ctx.currentTime; for(let i=0;i<220;i++){ const d=Math.pow(Math.random(),.8)*4, s=noise(.04), f=ctx.createBiquadFilter(), g=ctx.createGain(); f.type='bandpass'; f.frequency.value=1200+Math.random()*2200; f.Q.value=1.5; const fade=d>3?(4-d):1; env(g,t+d,.002,.35*Math.max(fade,.05),0,.03); s.connect(f).connect(g).connect(out); s.start(t+d); } }
   };
-  const names = {donner:'Donner',regen:'Regen',wind:'Wind',vogel:'Vögel',eule:'Eule',schritte:'Schritte',tuer:'Tür',funkeln:'Funkeln',musik:'Schlaflied'};
+  const names = {donner:'Donner',regen:'Regen',wind:'Wind',vogel:'Vögel',eule:'Eule',schritte:'Schritte',tuer:'Tür',funkeln:'Funkeln',musik:'Schlaflied',pfiff:'Pfiff',schuss:'Schuss',ball:'Ball tippt',jubel:'Jubel',applaus:'Applaus'};
   return { init, names, has:n=>!!lib[n], play(n){ init(); if(lib[n]) lib[n](); } };
 })();
 
@@ -132,6 +139,76 @@ Fridolin musste lächeln. Der Donner wurde leiser und leiser, bis er nur noch ei
 Am nächsten Morgen [sound:schritte]tapste Fridolin aus der Höhle[/sound]. Alles glitzerte nass in der Sonne, und [sound:vogel]die Vögel sangen, als wäre nichts gewesen[/sound].
 
 „Siehst du“, sagte Mama Fuchs. „Nach jedem Gewitter kommt die Sonne wieder.“ Und Fridolin wusste: Beim nächsten Mal würde er ein kleines bisschen weniger Angst haben.
+
+[sound:funkeln]Ende.[/sound]` },
+{ id:'lina-nico', title:'Lina und Nico und der große Traum', theme:'Fußball · Zusammenhalt · Dranbleiben', text:
+`Hinter dem Haus von Lina und Nico lag eine kleine Wiese. Für alle anderen war es nur eine Wiese mit einem schiefen Apfelbaum. Für Lina und Nico war es das größte Stadion der Welt.
+
+Zwei alte Eimer waren das Tor, der Apfelbaum war die Ehrentribüne, und jeden Nachmittag nach den Hausaufgaben [sound:ball]tippte der Ball über das Gras[/sound]. Lina war schnell wie ein Wiesel. Nico konnte den Ball so genau passen, dass er fast immer dort landete, wo er hinsollte.
+
+„Und jetzt, meine Damen und Herren“, rief Nico mit tiefer Reporterstimme, „läuft Lina auf das Tor zu, sie zieht ab, und …“ [sound:schuss]Lina schoss mit voller Kraft[/sound]. Der Ball flog zwischen den Eimern hindurch und landete im Johannisbeerbusch.
+
+„Tor!“, schrien beide. [sound:jubel]Und in ihren Köpfen jubelte ein ganzes Stadion[/sound].
+
+Papa schaute aus dem Küchenfenster und lachte. „Wenn ihr wirklich so gern spielt“, sagte er beim Abendessen, „dann sollten wir mal beim Training vom FC Seewiese vorbeischauen.“
+
+Lina ließ vor Schreck die Gabel fallen. Nico verschluckte sich an seinem Kakao. „Ein richtiger Verein?“, fragten sie gleichzeitig. „Mit Trikots und Trainer und allem?“
+
+Am Samstag darauf standen die beiden am Rand eines echten Fußballplatzes. Das Gras war grün und kurz, die Tore hatten echte Netze, und überall liefen Kinder in roten Trikots herum. Ein Mann mit einer Trillerpfeife und einer Mütze kam auf sie zu.
+
+„Ich bin Trainer Okan“, sagte er und gab ihnen die Hand. „Ihr wollt also Fußball spielen?“ Lina nickte so heftig, dass ihr Zopf hin und her flog. Nico brachte vor Aufregung kein Wort heraus und nickte einfach mit.
+
+„Dann zeigt mal, was ihr könnt.“ [sound:pfiff]Trainer Okan pfiff, und das Training begann[/sound].
+
+Am Anfang war alles ganz anders als auf der Wiese. Die anderen Kinder waren größer, und die Übungen waren schwer. Nico stolperte beim Slalom über die Hütchen. Lina rannte so schnell, dass sie den Ball einfach hinter sich ließ. Ein paar Kinder kicherten.
+
+Auf dem Heimweg waren die beiden ganz still. „Vielleicht sind wir doch nicht gut genug“, murmelte Nico. Lina kickte einen Stein vor sich her und sagte nichts.
+
+Zu Hause setzte sich Mama zu ihnen auf die Treppe. „Wisst ihr was?“, sagte sie. „Jeder Profi hat irgendwann zum ersten Mal über ein Hütchen gestolpert. Der Unterschied ist nur: Die Profis sind am nächsten Tag wiedergekommen.“
+
+Also kamen Lina und Nico wieder. Am Dienstag, am Donnerstag und am Samstag. Sie kamen, wenn die Sonne schien, und sie kamen auch, wenn [sound:regen]der Regen auf den Platz prasselte[/sound] und ihre Schuhe schwer wie Backsteine wurden.
+
+Sie übten auf der Wiese weiter, jeden Tag. Nico lernte, den Ball eng am Fuß zu führen, so als wäre er mit einem unsichtbaren Faden festgebunden. Lina lernte, dass Schnelligkeit nur dann etwas nützt, wenn der Ball mitkommt. Und beide lernten das Wichtigste: dass man zusammen viel stärker ist als allein.
+
+Dann kam das erste richtige Spiel. Der FC Seewiese gegen die Blauen Störche vom anderen Ende des Sees. Lina und Nico saßen zuerst auf der Bank und wippten mit den Beinen. Ihre Herzen klopften so laut, dass sie fast nichts anderes hörten.
+
+Kurz vor Schluss stand es eins zu eins. Da drehte sich Trainer Okan um. „Lina, Nico, ihr seid dran!“
+
+Die beiden rannten aufs Feld. Nico bekam den Ball in der Mitte. Er sah, wie Lina links losspurtete, genau wie früher auf der Wiese. Er wartete einen Moment, dann spielte er den Ball in den freien Raum. Lina erreichte ihn kurz vor der Linie, schaute hoch, und [sound:schuss]sie schoss den Ball ins lange Eck[/sound].
+
+Der Ball zappelte im Netz. Für einen Augenblick war alles still. Dann [sound:jubel]jubelten alle Eltern am Spielfeldrand[/sound], und die ganze Mannschaft stürzte sich auf Lina und Nico.
+
+„Das war unser Wiesen-Trick!“, rief Nico. „Genau wie zu Hause!“, lachte Lina.
+
+Die Jahre vergingen. Aus den kleinen roten Trikots wurden größere, und aus den Eimern auf der Wiese wurde ein richtiges kleines Tor, das Papa zum Geburtstag zusammengeschraubt hatte. Lina und Nico spielten in immer besseren Mannschaften. Manchmal gewannen sie, manchmal verloren sie. Und einmal verletzte sich Nico am Knöchel und musste viele Wochen zuschauen.
+
+Das war die schwerste Zeit. Nico saß auf der Tribüne und sah den anderen beim Spielen zu, und er hatte Angst, dass er alles verlernt. Aber Lina besuchte ihn nach jedem Training und erzählte ihm jede Übung ganz genau. „Du verpasst nichts“, sagte sie. „Ich merke mir alles für dich.“ Und als Nico wieder gesund war, [sound:ball]tippte er den Ball auf der Wiese hoch[/sound], hundertmal hintereinander, ohne dass er einmal den Boden berührte.
+
+Dann kam ein Brief. Nein, eigentlich kamen zwei Briefe, am selben Tag. Lina wurde eingeladen, bei einer großen Frauenmannschaft vorzuspielen. Und Nico bekam eine Einladung in die Nachwuchsakademie eines großen Vereins.
+
+Sie lasen die Briefe dreimal. Dann rannten sie in den Garten, unter den alten Apfelbaum, und hüpften im Kreis, bis ihnen schwindelig war.
+
+Viele Monate später stand Lina in einem echten Stadion. Tausende Menschen saßen auf den Rängen, Fahnen wehten, und von irgendwoher roch es nach Bratwurst. [sound:tuer]Die Tür der Kabine öffnete sich[/sound], und Lina lief mit ihrer Mannschaft hinaus auf den Rasen. Es war ihr erstes Spiel als Profi.
+
+Ganz oben auf der Tribüne saßen Mama und Papa. Und zwischen ihnen saß Nico und hielt ein selbst gemaltes Schild hoch: „Lauf, Lina, lauf!“
+
+In der zweiten Halbzeit bekam Lina den Ball an der Mittellinie. Sie lief, schneller als ein Wiesel, an einer Gegnerin vorbei, an noch einer, und dann [sound:schuss]zog sie aus vollem Lauf ab[/sound]. Der Ball schlug oben im Tor ein.
+
+[sound:jubel]Das ganze Stadion sprang auf und jubelte[/sound]. Lina rannte zur Eckfahne, schaute hinauf zur Tribüne und machte das Zeichen, das nur sie und Nico kannten: zwei Finger, die einen Eimer formen. Das Zeichen für ihre Wiese.
+
+Und nur ein paar Wochen später war es umgekehrt. Da saß Lina auf der Tribüne, und Nico lief zum ersten Mal in einem großen Stadion auf. Er spielte nicht so schnell wie seine Schwester, aber er sah das ganze Spielfeld wie von oben. In der letzten Minute spielte er einen Pass, so genau wie mit einem unsichtbaren Faden, und sein Mitspieler musste den Ball nur noch ins Tor schieben. Als [sound:pfiff]der Schiedsrichter das Spiel abpfiff[/sound], hatte Nicos Mannschaft gewonnen.
+
+Später, als die Reporter kamen, fragte einer: „Nico, wie wird man eigentlich Fußballprofi?“
+
+Nico überlegte kurz. Dann lächelte er. „Man braucht eine Wiese, zwei Eimer und eine Schwester, die einen nicht aufgeben lässt. Und man muss immer wiederkommen, auch wenn man über ein Hütchen gestolpert ist.“
+
+[sound:applaus]Alle Reporter klatschten[/sound], und Lina, die hinter den Kameras stand, wurde ein kleines bisschen rot.
+
+Am nächsten Sonntag waren beide wieder zu Hause. Sie gingen in den Garten, unter den alten Apfelbaum. Die Vögel sangen, und die Wiese war genauso grün wie früher. Nico stellte zwei Eimer auf. Lina legte den Ball ins Gras.
+
+„Und jetzt, meine Damen und Herren“, sagte Nico mit tiefer Reporterstimme, „das wichtigste Spiel der Welt.“
+
+Und sie spielten, bis es dunkel wurde.
 
 [sound:funkeln]Ende.[/sound]` }];
 
